@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cache System UI</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 700px; margin: 2em auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+        h1 { text-align: center; color: #2d3748; }
+        h2 { color: #4a5568; margin-top: 2em; }
+        label { font-weight: 500; }
+        input, button { margin: 0.2em 0.5em 0.2em 0; padding: 0.5em; border-radius: 4px; border: 1px solid #cbd5e1; }
+        button { background: #2563eb; color: #fff; border: none; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .section { margin-bottom: 2em; }
+        .output { background: #f1f5f9; padding: 1em; border-radius: 5px; margin-top: 1em; font-family: 'Fira Mono', monospace; font-size: 1em; }
+        .success { color: #16a34a; }
+        .error { color: #dc2626; }
+        .info { color: #2563eb; }
+        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+        th, td { border: 1px solid #cbd5e1; padding: 0.5em; text-align: left; }
+        th { background: #e0e7ef; }
+        .ttl { font-size: 0.95em; color: #64748b; }
+        .flex-row { display: flex; align-items: center; gap: 0.5em; }
+        .status { margin-left: 1em; font-weight: 500; }
+        @media (max-width: 700px) {
+            .container { padding: 1em; }
+            table, th, td { font-size: 0.95em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Thread-Safe LRU Cache UI</h1>
+        
+        <div class="section">
+            <h2>Put Item <span title="Add or update a key-value pair with optional TTL (seconds)">🛈</span></h2>
+            <div class="flex-row">
+                <label for="put-key">Key:</label>
+                <input id="put-key" placeholder="e.g. user:42" title="Cache key">
+                <label for="put-value">Value:</label>
+                <input id="put-value" placeholder="e.g. John Doe" title="Cache value">
+                <label for="put-ttl">TTL:</label>
+                <input id="put-ttl" placeholder="TTL (sec)" size="6" title="Time to live (seconds)">
+                <button onclick="putItem()">Put</button>
+                <span id="put-status" class="status"></span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Get Item <span title="Retrieve a value by key">🛈</span></h2>
+            <div class="flex-row">
+                <label for="get-key">Key:</label>
+                <input id="get-key" placeholder="e.g. user:42">
+                <button onclick="getItem()">Get</button>
+                <span id="get-status" class="status"></span>
+            </div>
+            <div id="get-output" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h2>Delete Item <span title="Remove a key from the cache">🛈</span></h2>
+            <div class="flex-row">
+                <label for="delete-key">Key:</label>
+                <input id="delete-key" placeholder="e.g. user:42">
+                <button onclick="deleteItem()">Delete</button>
+                <span id="delete-status" class="status"></span>
+            </div>
+        </div>
+
+        <div class="section">
+            <button onclick="clearCache()">Clear Entire Cache</button>
+            <span id="clear-status" class="status"></span>
+        </div>
+
+        <div class="section">
+            <h2>Cache Stats <span title="View cache statistics">🛈</span></h2>
+            <button onclick="getStats()">Refresh Stats</button>
+            <div id="stats-output" class="output info"></div>
+        </div>
+
+        <div class="section">
+            <h2>All Cache Entries <span title="Current non-expired cache entries">🛈</span></h2>
+            <button onclick="getAll()">Refresh Entries</button>
+            <div id="all-output" class="output"></div>
+        </div>
+    </div>
+
+    <script>
+        const api = ""; // Use relative path for same-origin
+
+        function setStatus(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'status ' + (type || '');
+            setTimeout(() => { el.textContent = ''; }, 2000);
+        }
+
+        async function putItem() {
+            const key = document.getElementById('put-key').value;
+            const value = document.getElementById('put-value').value;
+            const ttl = document.getElementById('put-ttl').value;
+            if (!key) return setStatus('put-status', 'Key required', 'error');
+            await fetch(api + '/put', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, value, ttl: ttl ? parseInt(ttl) : undefined })
+            });
+            setStatus('put-status', 'Item stored!', 'success');
+            getAll();
+        }
+
+        async function getItem() {
+            const key = document.getElementById('get-key').value;
+            const out = document.getElementById('get-output');
+            if (!key) return setStatus('get-status', 'Key required', 'error');
+            out.textContent = '...';
+            const res = await fetch(api + '/get?key=' + encodeURIComponent(key));
+            if (res.ok) {
+                const data = await res.json();
+                out.innerHTML = `<span class='success'>Found:</span> <b>${data.key}</b> = <b>${data.value}</b>`;
+                setStatus('get-status', 'Success', 'success');
+            } else {
+                out.innerHTML = `<span class='error'>Not found or expired</span>`;
+                setStatus('get-status', 'Not found', 'error');
+            }
+        }
+
+        async function deleteItem() {
+            const key = document.getElementById('delete-key').value;
+            if (!key) return setStatus('delete-status', 'Key required', 'error');
+            await fetch(api + '/delete?key=' + encodeURIComponent(key), { method: 'DELETE' });
+            setStatus('delete-status', 'Deleted!', 'success');
+            getAll();
+        }
+
+        async function clearCache() {
+            await fetch(api + '/clear', { method: 'POST' });
+            setStatus('clear-status', 'Cache cleared!', 'success');
+            getAll();
+        }
+
+        async function getStats() {
+            const out = document.getElementById('stats-output');
+            out.textContent = '...';
+            const res = await fetch(api + '/stats');
+            const data = await res.json();
+            out.innerHTML = `<b>Hits:</b> ${data.hits} &nbsp; <b>Misses:</b> ${data.misses} &nbsp; <b>Hit Rate:</b> ${data.hit_rate} <br>
+                <b>Total Requests:</b> ${data.total_requests} &nbsp; <b>Current Size:</b> ${data.current_size} <br>
+                <b>Evictions:</b> ${data.evictions} &nbsp; <b>Expired Removals:</b> ${data.expired_removals}`;
+        }
+
+        async function getAll() {
+            const out = document.getElementById('all-output');
+            out.textContent = '...';
+            const res = await fetch(api + '/all');
+            const data = await res.json();
+            if (data.length === 0) {
+                out.innerHTML = '<span class="info">(empty)</span>';
+                return;
+            }
+            let html = '<table><tr><th>Key</th><th>Value</th></tr>';
+            for (const entry of data) {
+                html += `<tr><td>${entry.key}</td><td>${entry.value}</td></tr>`;
+            }
+            html += '</table>';
+            out.innerHTML = html;
+        }
+
+        // Initial load
+        getStats();
+        getAll();
+    </script>
+</body>
+</html> 
