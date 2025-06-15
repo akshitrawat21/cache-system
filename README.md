@@ -18,14 +18,14 @@ Try out the cache system at: [https://cache-system.onrender.com/](https://cache-
 ## Development Setup
 
 ### Prerequisites
-- Python 3.13.1 or higher
+- Python 3.11.7
 - pip (Python package installer)
 
 1. *Create and Activate Virtual Environment*
 
    bash
    # Create virtual environment with Python 3.13.1
-   python3.13 -m venv venv
+   python3.11 -m venv venv
 
    # Activate virtual environment
    # On Windows:
