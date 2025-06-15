@@ -1,42 +1,68 @@
 # Thread-Safe In-Memory Cache System
 
-A production-ready, thread-safe in-memory cache system with LRU eviction, TTL support, and performance tracking.
+Thread-safe in-memory cache system with LRU eviction, TTL support, and performance tracking.
 
 ## Features
 
-- **Thread-Safe Operations**: Concurrent access support with proper synchronization
-- **LRU Eviction**: Automatic removal of least recently used items when cache is full
-- **TTL Support**: Automatic expiration of cache entries with configurable time-to-live
-- **Performance Tracking**: Detailed statistics including hits, misses, and evictions
-- **Web Interface**: User-friendly UI for cache operations
-- **REST API**: Full HTTP API for programmatic access
+- *Thread-Safe Operations*: Concurrent access support with proper synchronization
+- *LRU Eviction*: Automatic removal of least recently used items when cache is full
+- *TTL Support*: Automatic expiration of cache entries with configurable time-to-live
+- *Performance Tracking*: Detailed statistics including hits, misses, and evictions
+- *Web Interface*: User-friendly UI for cache operations
+- *REST API*: Full HTTP API for programmatic access
+
+## Development Setup
+
+### Prerequisites
+- Python 3.13.1 or higher
+- pip (Python package installer)
+
+1. *Create and Activate Virtual Environment*
+
+   bash
+   # Create virtual environment with Python 3.13.1
+   python3.13 -m venv venv
+
+   # Activate virtual environment
+   # On Windows:
+   .\venv\Scripts\Activate.ps1
+   # On Unix/MacOS:
+   source venv/bin/activate
+   
+
+2. *Install Dependencies*
+
+   bash
+   pip install -r requirements.txt
+   
+
+3. *Run the Server*
+
+   bash
+   uvicorn cache_api:app --reload
+   
+
+   The server will start at http://localhost:8000
+
+4. *Access the Web Interface*
+
+   Open http://localhost:8000 in your browser to access the web interface.
 
 ## Installation
 
 1. Clone the repository:
-```bash
-git clone <repository-url>
+bash
+git clone https://github.com/akshitrawat21/cache-system
 cd cache_system
-```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+
+2. Follow the Development Setup steps above.
 
 ## Usage
 
-### Starting the Server
-
-```bash
-uvicorn cache_api:app --reload
-```
-
-The server will start at `http://localhost:8000`
-
 ### Web Interface
 
-Open `http://localhost:8000` in your browser to access the web interface. You can:
+Open http://localhost:8000 in your browser to access the web interface. You can:
 - Add/update cache entries
 - Retrieve values
 - Delete entries
@@ -45,24 +71,24 @@ Open `http://localhost:8000` in your browser to access the web interface. You ca
 
 ### API Endpoints
 
-- `GET /`: Web interface
-- `POST /put`: Add/update a cache entry
-  ```json
+- GET /: Web interface
+- POST /put: Add/update a cache entry
+  json
   {
     "key": "user:123",
     "value": "John Doe",
     "ttl": 300  // optional, in seconds
   }
-  ```
-- `GET /get?key=user:123`: Retrieve a value
-- `DELETE /delete?key=user:123`: Remove an entry
-- `POST /clear`: Clear all entries
-- `GET /stats`: Get cache statistics
-- `GET /all`: List all non-expired entries
+  
+- GET /get?key=user:123: Retrieve a value
+- DELETE /delete?key=user:123: Remove an entry
+- POST /clear: Clear all entries
+- GET /stats: Get cache statistics
+- GET /all: List all non-expired entries
 
 ### Python API
 
-```python
+python
 from cache import ThreadSafeLRUCache
 
 # Create cache with max 1000 entries and 5-minute default TTL
@@ -76,12 +102,12 @@ value = cache.get("user:123")
 
 # Get statistics
 stats = cache.get_stats()
-```
+
 
 ## Design Decisions
 
 ### Concurrency Model
-- Uses `threading.RLock()` for thread-safe operations
+- Uses threading.RLock() for thread-safe operations
 - Minimizes lock contention by using fine-grained locking
 - Background cleanup thread for expired entries
 
@@ -99,9 +125,9 @@ stats = cache.get_stats()
 ## Testing
 
 Run the test suite:
-```bash
+bash
 pytest test_cache.py
-```
+
 
 Test coverage includes:
 - Basic operations (put/get/delete)
@@ -112,7 +138,7 @@ Test coverage includes:
 
 ## Sample Statistics Output
 
-```json
+json
 {
     "hits": 150,
     "misses": 25,
@@ -122,7 +148,7 @@ Test coverage includes:
     "evictions": 12,
     "expired_removals": 8
 }
-```
+
 
 ## Error Handling
 
@@ -132,4 +158,16 @@ The system handles various error cases:
 - Concurrent access conflicts
 - Cache size limits
 
---- 
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
