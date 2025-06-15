@@ -1,6 +1,6 @@
 fastapi==0.104.1
 uvicorn==0.24.0
-pydantic-core==2.10.2
+pydantic==1.10.13
 typing-extensions==4.8.0
 python-multipart==0.0.6
 pytest==7.4.3
